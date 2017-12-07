@@ -2,10 +2,8 @@ package com.getrealtimedata;
 
 import android.animation.ValueAnimator;
 import android.content.Context;
-import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Bundle;
-import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.view.animation.LinearInterpolator;
@@ -65,7 +63,6 @@ public class MapDemoActivity extends AppCompatActivity {
 
 
 
-
        /* token = FirebaseInstanceId.getInstance().getToken();*/
 
         if (TextUtils.isEmpty(getResources().getString(R.string.google_maps_api_key))) {
@@ -116,19 +113,8 @@ public class MapDemoActivity extends AppCompatActivity {
 
                                 mk = map.addMarker(new MarkerOptions()
                                         .position(new LatLng(customer.lat, customer.log))
-                                        .title("office").icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_launcher)));
+                                        .title("office").icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_launcher)));
 
-                                if (ActivityCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                                    // TODO: Consider calling
-                                    //    ActivityCompat#requestPermissions
-                                    // here to request the missing permissions, and then overriding
-                                    //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-                                    //                                          int[] grantResults)
-                                    // to handle the case where the user grants the permission. See the documentation
-                                    // for ActivityCompat#requestPermissions for more details.
-                                    return;
-                                }
-                                map.setMyLocationEnabled(true);
 
                                 CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latlngOne, 15);
                                 map.animateCamera(cameraUpdate);
