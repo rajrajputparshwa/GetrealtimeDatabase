@@ -113,7 +113,7 @@ public class MapDemoActivity extends AppCompatActivity {
 
                                 mk = map.addMarker(new MarkerOptions()
                                         .position(new LatLng(customer.lat, customer.log))
-                                        .title("office").icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_launcher)));
+                                        .title("office").icon(BitmapDescriptorFactory.fromResource(R.mipmap.icon_car)));
 
 
                                 CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latlngOne, 15);
@@ -154,7 +154,7 @@ public class MapDemoActivity extends AppCompatActivity {
 
             final LatLngInterpolator latLngInterpolator = new LatLngInterpolator.LinearFixed();
             ValueAnimator valueAnimator = ValueAnimator.ofFloat(0, 1);
-            valueAnimator.setDuration(5000); // duration 1 second
+            valueAnimator.setDuration(7000); // duration 1 second
             valueAnimator.setInterpolator(new LinearInterpolator());
             valueAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
                 @Override
