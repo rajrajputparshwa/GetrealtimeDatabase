@@ -63,6 +63,7 @@ public class MapDemoActivity extends AppCompatActivity {
 
 
 
+
        /* token = FirebaseInstanceId.getInstance().getToken();*/
 
         if (TextUtils.isEmpty(getResources().getString(R.string.google_maps_api_key))) {
@@ -84,10 +85,11 @@ public class MapDemoActivity extends AppCompatActivity {
 
 
                     mFirebaseInstance = FirebaseDatabase.getInstance();
+                    mFirebaseInstance = FirebaseDatabase.getInstance();
 
                     mFirebaseDatabase = mFirebaseInstance.getReference("cars");
 
-                    mFirebaseDatabase.child("driver1").addValueEventListener(new ValueEventListener() {
+                    mFirebaseDatabase.child("driver2").addValueEventListener(new ValueEventListener() {
                         @Override
                         public void onDataChange(DataSnapshot dataSnapshot) {
 
@@ -97,17 +99,23 @@ public class MapDemoActivity extends AppCompatActivity {
                             location = new Location("");
                             location.setLatitude(customer.lat);
                             location.setLongitude(customer.log);
+                            float bearing = customer.bearing;
                             latlngOne = new LatLng(customer.lat, customer.log);
 
 
                             if (markerCount == 1) {
 
-                                String msg = "Updated Locations : " +
+                           /*     String msg = "Updated Locations : " +
                                         Double.toString(customer.lat) + "," +
                                         Double.toString(customer.log);
 
-                                Toast.makeText(context, msg, Toast.LENGTH_SHORT).show();
-                                animateMarker(location, mk);
+                                Toast.makeText(context, msg, Toast.LENGTH_SHORT).show();*/
+
+                                CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latlngOne, 18);
+                                map.animateCamera(cameraUpdate);
+
+
+                                animateMarker(location, mk, bearing);
                             } else if (markerCount == 0) {
 
 
@@ -116,9 +124,8 @@ public class MapDemoActivity extends AppCompatActivity {
                                         .title("office").icon(BitmapDescriptorFactory.fromResource(R.mipmap.icon_car)));
 
 
-                                CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latlngOne, 15);
+                                CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latlngOne, 18);
                                 map.animateCamera(cameraUpdate);
-
 
                                 markerCount = 1;
 
@@ -145,7 +152,7 @@ public class MapDemoActivity extends AppCompatActivity {
     }
 
 
-    public static void animateMarker(final Location destination, final Marker marker) {
+    public static void animateMarker(final Location destination, final Marker marker, final Float Bearing) {
         if (marker != null) {
             final LatLng startPosition = marker.getPosition();
             final LatLng endPosition = new LatLng(destination.getLatitude(), destination.getLongitude());
@@ -154,7 +161,7 @@ public class MapDemoActivity extends AppCompatActivity {
 
             final LatLngInterpolator latLngInterpolator = new LatLngInterpolator.LinearFixed();
             ValueAnimator valueAnimator = ValueAnimator.ofFloat(0, 1);
-            valueAnimator.setDuration(7000); // duration 1 second
+            valueAnimator.setDuration(1000); // duration 1 second
             valueAnimator.setInterpolator(new LinearInterpolator());
             valueAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
                 @Override
@@ -163,7 +170,8 @@ public class MapDemoActivity extends AppCompatActivity {
                         float v = animation.getAnimatedFraction();
                         LatLng newPosition = latLngInterpolator.interpolate(v, startPosition, endPosition);
                         marker.setPosition(newPosition);
-                        marker.setRotation(computeRotation(v, startRotation, destination.getBearing()));
+                        marker.setRotation(Bearing);
+                        marker.setFlat(true);
                     } catch (Exception ex) {
                         // I don't care atm..
                     }
