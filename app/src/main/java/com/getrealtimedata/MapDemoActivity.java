@@ -6,7 +6,10 @@ import android.location.Location;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
+import android.util.Log;
+import android.view.View;
 import android.view.animation.LinearInterpolator;
+import android.widget.Button;
 import android.widget.Toast;
 
 import com.google.android.gms.location.LocationRequest;
@@ -43,6 +46,8 @@ public class MapDemoActivity extends AppCompatActivity {
     Marker mk = null;
     LatLng latlngOne;
     String value;
+    Button recenter;
+    int center = 0;
 
 
     private final static String KEY_LOCATION = "location";
@@ -58,6 +63,14 @@ public class MapDemoActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.map_demo_activity);
         markerCount = 0;
+        recenter = findViewById(R.id.recenter);
+
+        recenter.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                center = 1;
+            }
+        });
 
 
         Bundle extras = getIntent().getExtras();
@@ -98,17 +111,6 @@ public class MapDemoActivity extends AppCompatActivity {
                     mFirebaseInstance = FirebaseDatabase.getInstance();
 
 
-                    Bundle extras = getIntent().getExtras();
-
-                    if (extras != null) {
-                        // and get whatever type user account id is
-
-                        value = extras.getString("gps");
-
-                    }
-
-
-
                     mFirebaseDatabase = mFirebaseInstance.getReference("cars");
 
                     mFirebaseDatabase.child(value).addValueEventListener(new ValueEventListener() {
@@ -137,7 +139,25 @@ public class MapDemoActivity extends AppCompatActivity {
                                 map.animateCamera(cameraUpdate);
 */
 
-                                animateMarker(location, mk, bearing);
+                                Log.e("ZoomControl", "" + map.getCameraPosition().zoom);
+
+                                if (center == 1 || map.getCameraPosition().zoom == 18) {
+                                    CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latlngOne, 18);
+                                    map.animateCamera(cameraUpdate);
+
+                                    animateMarker(location, mk, bearing);
+
+                                    center = 0;
+
+
+                                    Log.e("Zoom", "Zoom");
+                                } else if (map.getCameraPosition().zoom < 18 || map.getCameraPosition().zoom > 18) {
+                                    animateMarker(location, mk, bearing);
+
+                                    Log.e("UnZoom", "UNZoom");
+                                }
+
+
                             } else if (markerCount == 0) {
 
 
@@ -148,6 +168,7 @@ public class MapDemoActivity extends AppCompatActivity {
 
                                 CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latlngOne, 18);
                                 map.animateCamera(cameraUpdate);
+
 
                                 /*map.setMapType(GoogleMap.MAP_TYPE_HYBRID);*/
 
