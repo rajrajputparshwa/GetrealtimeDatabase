@@ -42,6 +42,7 @@ public class MapDemoActivity extends AppCompatActivity {
     String token;
     Marker mk = null;
     LatLng latlngOne;
+    String value;
 
 
     private final static String KEY_LOCATION = "location";
@@ -57,6 +58,16 @@ public class MapDemoActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.map_demo_activity);
         markerCount = 0;
+
+
+        Bundle extras = getIntent().getExtras();
+
+        if (extras != null) {
+            // and get whatever type user account id is
+
+            value = extras.getString("gps");
+
+        }
 
 
         mFirebaseInstance = FirebaseDatabase.getInstance();
@@ -85,11 +96,22 @@ public class MapDemoActivity extends AppCompatActivity {
 
 
                     mFirebaseInstance = FirebaseDatabase.getInstance();
-                    mFirebaseInstance = FirebaseDatabase.getInstance();
+
+
+                    Bundle extras = getIntent().getExtras();
+
+                    if (extras != null) {
+                        // and get whatever type user account id is
+
+                        value = extras.getString("gps");
+
+                    }
+
+
 
                     mFirebaseDatabase = mFirebaseInstance.getReference("cars");
 
-                    mFirebaseDatabase.child("driver2").addValueEventListener(new ValueEventListener() {
+                    mFirebaseDatabase.child(value).addValueEventListener(new ValueEventListener() {
                         @Override
                         public void onDataChange(DataSnapshot dataSnapshot) {
 
@@ -111,9 +133,9 @@ public class MapDemoActivity extends AppCompatActivity {
 
                                 Toast.makeText(context, msg, Toast.LENGTH_SHORT).show();*/
 
-                                CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latlngOne, 18);
+                             /*   CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latlngOne, 18);
                                 map.animateCamera(cameraUpdate);
-
+*/
 
                                 animateMarker(location, mk, bearing);
                             } else if (markerCount == 0) {
@@ -126,6 +148,8 @@ public class MapDemoActivity extends AppCompatActivity {
 
                                 CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latlngOne, 18);
                                 map.animateCamera(cameraUpdate);
+
+                                /*map.setMapType(GoogleMap.MAP_TYPE_HYBRID);*/
 
                                 markerCount = 1;
 
