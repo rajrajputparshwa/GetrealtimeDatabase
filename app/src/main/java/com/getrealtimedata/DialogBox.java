@@ -39,8 +39,6 @@ public class DialogBox extends Activity {
                     Intent i = new Intent(context, MapDemoActivity.class);
                     i.putExtra("gps",edittext.getText().toString());
                     context.startActivity(i);
-
-
                     alert.dismiss();
                 }
 

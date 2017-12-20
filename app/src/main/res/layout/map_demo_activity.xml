@@ -17,5 +17,22 @@
 		android:id="@+id/recenter"
 		android:layout_alignParentBottom="true"
 		android:background="@color/colorPrimary"/>
+
+	<Button
+		android:layout_width="150dp"
+		android:layout_height="40dp"
+		android:text="Spped"
+		android:id="@+id/speed"
+		android:layout_alignParentBottom="true"
+		android:layout_alignParentRight="true"
+		android:background="@color/colorPrimary"/>
+
+	<!--<ImageView
+		android:layout_width="40dp"
+		android:layout_height="40dp"
+		android:id="@+id/cancel"
+		android:visibility="gone"
+		android:layout_alignParentRight="true"
+		android:src="@drawable/cancel1600"/>-->
     
 </RelativeLayout>

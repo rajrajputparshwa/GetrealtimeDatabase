@@ -2,8 +2,10 @@ package com.getrealtimedata;
 
 import android.animation.ValueAnimator;
 import android.content.Context;
+import android.content.Intent;
 import android.location.Location;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.util.Log;
@@ -20,6 +22,7 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.firebase.database.DataSnapshot;
@@ -40,15 +43,23 @@ public class MapDemoActivity extends AppCompatActivity {
     private DatabaseReference mFirebaseDatabase;
     private FirebaseDatabase mFirebaseInstance;
     public String userId;
-    Location location;
     Context context = this;
     String token;
     Marker mk = null;
     LatLng latlngOne;
     String value;
-    Button recenter;
+    Button recenter, speed;
+    Location location;
     int center = 0;
+    Handler handler;
+    GoogleMap getMap;
 
+    @Override
+    public void onBackPressed() {
+
+        Intent i = new Intent(getApplicationContext(), MainActivity.class);
+        startActivity(i);
+    }
 
     private final static String KEY_LOCATION = "location";
 
@@ -64,10 +75,14 @@ public class MapDemoActivity extends AppCompatActivity {
         setContentView(R.layout.map_demo_activity);
         markerCount = 0;
         recenter = findViewById(R.id.recenter);
+        speed = findViewById(R.id.speed);
 
         recenter.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latlngOne, 17);
+                getMap.animateCamera(cameraUpdate);
+
                 center = 1;
             }
         });
@@ -107,6 +122,8 @@ public class MapDemoActivity extends AppCompatActivity {
                 @Override
                 public void onMapReady(final GoogleMap map) {
 
+                    getMap = map;
+
 
                     mFirebaseInstance = FirebaseDatabase.getInstance();
 
@@ -117,17 +134,18 @@ public class MapDemoActivity extends AppCompatActivity {
                         @Override
                         public void onDataChange(DataSnapshot dataSnapshot) {
 
-                            Customer customer = dataSnapshot.getValue(Customer.class);
+                            final Customer customer = dataSnapshot.getValue(Customer.class);
 
 
-                            location = new Location("");
-                            location.setLatitude(customer.lat);
-                            location.setLongitude(customer.log);
-                            float bearing = customer.bearing;
-                            latlngOne = new LatLng(customer.lat, customer.log);
+
+                                    location = new Location("");
+                                    location.setLatitude(customer.lat);
+                                    location.setLongitude(customer.log);
+                                    final float bearing = customer.bearing;
+                                    latlngOne = new LatLng(customer.lat, customer.log);
 
 
-                            if (markerCount == 1) {
+                                    if (markerCount == 1) {
 
                            /*     String msg = "Updated Locations : " +
                                         Double.toString(customer.lat) + "," +
@@ -139,43 +157,62 @@ public class MapDemoActivity extends AppCompatActivity {
                                 map.animateCamera(cameraUpdate);
 */
 
-                                Log.e("ZoomControl", "" + map.getCameraPosition().zoom);
+                                        Log.e("ZoomControl", "" + map.getCameraPosition().zoom);
 
-                                if (center == 1 || map.getCameraPosition().zoom == 18) {
-                                    CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latlngOne, 18);
-                                    map.animateCamera(cameraUpdate);
-
-                                    animateMarker(location, mk, bearing);
-
-                                    center = 0;
+                                        if (center == 1 || map.getCameraPosition().zoom == 17) {
 
 
-                                    Log.e("Zoom", "Zoom");
-                                } else if (map.getCameraPosition().zoom < 18 || map.getCameraPosition().zoom > 18) {
-                                    animateMarker(location, mk, bearing);
-
-                                    Log.e("UnZoom", "UNZoom");
-                                }
-
-
-                            } else if (markerCount == 0) {
+                                            CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latlngOne, 17);
+                                            map.animateCamera(cameraUpdate);
+                                            map.setMapStyle(
+                                                    MapStyleOptions.loadRawResourceStyle(
+                                                            context, R.raw.map_style));
 
 
-                                mk = map.addMarker(new MarkerOptions()
-                                        .position(new LatLng(customer.lat, customer.log))
-                                        .title("office").icon(BitmapDescriptorFactory.fromResource(R.mipmap.icon_car)));
+
+                                            animateMarker(location, mk, bearing);
+                                            speed.setText("" + customer.speed);
+                                            Log.e("Speed", " " + customer.speed);
+
+                                            center = 0;
 
 
-                                CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latlngOne, 18);
-                                map.animateCamera(cameraUpdate);
+                                            Log.e("Handler", "Zoom");
+
+
+                                        } else if (map.getCameraPosition().zoom < 17 || map.getCameraPosition().zoom > 17) {
+
+
+                                            animateMarker(location, mk, bearing);
+                                            speed.setText("" + customer.speed);
+                                            Log.e("Speed", " " + customer.speed);
+
+                                            Log.e("UnZoom", "UNZoom");
+                                        }
+
+
+                                    } else if (markerCount == 0) {
+
+
+                                        mk = map.addMarker(new MarkerOptions()
+                                                .position(new LatLng(customer.lat, customer.log))
+                                                .title("office").icon(BitmapDescriptorFactory.fromResource(R.drawable.car)));
+
+
+                                        CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latlngOne, 17);
+                                        map.animateCamera(cameraUpdate);
+                                        map.setMapStyle(
+                                                MapStyleOptions.loadRawResourceStyle(
+                                                        context, R.raw.map_style));
+
 
 
                                 /*map.setMapType(GoogleMap.MAP_TYPE_HYBRID);*/
 
-                                markerCount = 1;
+                                        markerCount = 1;
 
 
-                            }
+                                    }
 
 
                         }
@@ -215,7 +252,7 @@ public class MapDemoActivity extends AppCompatActivity {
                         float v = animation.getAnimatedFraction();
                         LatLng newPosition = latLngInterpolator.interpolate(v, startPosition, endPosition);
                         marker.setPosition(newPosition);
-                        marker.setRotation(Bearing);
+                        marker.setRotation(computeRotation(v, startRotation, Bearing));
                         marker.setFlat(true);
                     } catch (Exception ex) {
                         // I don't care atm..
