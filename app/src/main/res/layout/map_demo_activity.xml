@@ -15,14 +15,28 @@
 		android:layout_height="40dp"
 		android:text="Recenter"
 		android:id="@+id/recenter"
+		android:textColor="#fff"
 		android:layout_alignParentBottom="true"
 		android:background="@color/colorPrimary"/>
 
 	<Button
 		android:layout_width="150dp"
 		android:layout_height="40dp"
-		android:text="Spped"
+		android:text="speed"
 		android:id="@+id/speed"
+		android:textColor="#fff"
+		android:layout_alignParentBottom="true"
+		android:layout_alignParentRight="true"
+		android:background="@color/colorPrimary"/>
+
+
+	<Button
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:text="Distance"
+		android:id="@+id/distanceaway"
+		android:layout_marginBottom="50dp"
+		android:textColor="#fff"
 		android:layout_alignParentBottom="true"
 		android:layout_alignParentRight="true"
 		android:background="@color/colorPrimary"/>

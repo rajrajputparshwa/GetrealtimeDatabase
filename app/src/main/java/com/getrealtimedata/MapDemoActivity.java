@@ -3,9 +3,15 @@ package com.getrealtimedata;
 import android.animation.ValueAnimator;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.util.Log;
@@ -14,7 +20,10 @@ import android.view.animation.LinearInterpolator;
 import android.widget.Button;
 import android.widget.Toast;
 
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -31,7 +40,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
-public class MapDemoActivity extends AppCompatActivity {
+public class MapDemoActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
     private SupportMapFragment mapFragment;
     private GoogleMap map;
@@ -48,11 +57,14 @@ public class MapDemoActivity extends AppCompatActivity {
     Marker mk = null;
     LatLng latlngOne;
     String value;
-    Button recenter, speed;
-    Location location;
+    Button recenter, speed , distanceway;
+    Location locations;
     int center = 0;
     Handler handler;
+    LocationManager locationManager;
     GoogleMap getMap;
+    GoogleApiClient mGoogleApiClient;
+    float latitude, longitude;
 
     @Override
     public void onBackPressed() {
@@ -76,6 +88,19 @@ public class MapDemoActivity extends AppCompatActivity {
         markerCount = 0;
         recenter = findViewById(R.id.recenter);
         speed = findViewById(R.id.speed);
+        distanceway = findViewById(R.id.distanceaway);
+
+
+        if (mGoogleApiClient == null) {
+            mGoogleApiClient = new GoogleApiClient.Builder(this)
+                    .addConnectionCallbacks(this)
+                    .addOnConnectionFailedListener(this)
+                    .addApi(LocationServices.API)
+                    .build();
+        }
+        if (mGoogleApiClient != null) {
+            mGoogleApiClient.connect();
+        }
 
         recenter.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -137,15 +162,16 @@ public class MapDemoActivity extends AppCompatActivity {
                             final Customer customer = dataSnapshot.getValue(Customer.class);
 
 
+                            locations = new Location("");
+                            locations.setLatitude(customer.lat);
+                            locations.setLongitude(customer.log);
+                            final float bearing = customer.bearing;
+                            latitude = Float.valueOf(String.valueOf(customer.lat));
+                            longitude = Float.valueOf(String.valueOf(customer.log));
+                            latlngOne = new LatLng(customer.lat, customer.log);
 
-                                    location = new Location("");
-                                    location.setLatitude(customer.lat);
-                                    location.setLongitude(customer.log);
-                                    final float bearing = customer.bearing;
-                                    latlngOne = new LatLng(customer.lat, customer.log);
 
-
-                                    if (markerCount == 1) {
+                            if (markerCount == 1) {
 
                            /*     String msg = "Updated Locations : " +
                                         Double.toString(customer.lat) + "," +
@@ -157,62 +183,61 @@ public class MapDemoActivity extends AppCompatActivity {
                                 map.animateCamera(cameraUpdate);
 */
 
-                                        Log.e("ZoomControl", "" + map.getCameraPosition().zoom);
+                                Log.e("ZoomControl", "" + map.getCameraPosition().zoom);
 
-                                        if (center == 1 || map.getCameraPosition().zoom == 17) {
-
-
-                                            CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latlngOne, 17);
-                                            map.animateCamera(cameraUpdate);
-                                            map.setMapStyle(
-                                                    MapStyleOptions.loadRawResourceStyle(
-                                                            context, R.raw.map_style));
+                                if (center == 1 || map.getCameraPosition().zoom == 17) {
 
 
-
-                                            animateMarker(location, mk, bearing);
-                                            speed.setText("" + customer.speed);
-                                            Log.e("Speed", " " + customer.speed);
-
-                                            center = 0;
-
-
-                                            Log.e("Handler", "Zoom");
+                                    CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latlngOne, 17);
+                                    map.animateCamera(cameraUpdate);
+                                    map.setMapStyle(
+                                            MapStyleOptions.loadRawResourceStyle(
+                                                    context, R.raw.map_style));
 
 
-                                        } else if (map.getCameraPosition().zoom < 17 || map.getCameraPosition().zoom > 17) {
+                                    animateMarker(locations, mk, bearing);
+                                    speed.setText("" + customer.speed);
+                                    Log.e("Speed", " " + customer.speed);
+
+                                    center = 0;
 
 
-                                            animateMarker(location, mk, bearing);
-                                            speed.setText("" + customer.speed);
-                                            Log.e("Speed", " " + customer.speed);
-
-                                            Log.e("UnZoom", "UNZoom");
-                                        }
+                                    Log.e("Handler", "Zoom");
 
 
-                                    } else if (markerCount == 0) {
+                                } else if (map.getCameraPosition().zoom < 17 || map.getCameraPosition().zoom > 17) {
 
 
-                                        mk = map.addMarker(new MarkerOptions()
-                                                .position(new LatLng(customer.lat, customer.log))
-                                                .title("office").icon(BitmapDescriptorFactory.fromResource(R.drawable.car)));
+                                    animateMarker(locations, mk, bearing);
+                                    speed.setText("" + customer.speed);
+                                    Log.e("Speed", " " + customer.speed);
+
+                                    Log.e("UnZoom", "UNZoom");
+                                }
 
 
-                                        CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latlngOne, 17);
-                                        map.animateCamera(cameraUpdate);
-                                        map.setMapStyle(
-                                                MapStyleOptions.loadRawResourceStyle(
-                                                        context, R.raw.map_style));
+                            } else if (markerCount == 0) {
+
+
+                                mk = map.addMarker(new MarkerOptions()
+                                        .position(new LatLng(customer.lat, customer.log))
+                                        .title("office").icon(BitmapDescriptorFactory.fromResource(R.drawable.car)));
+
+
+                                CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latlngOne, 17);
+                                map.animateCamera(cameraUpdate);
+                                map.setMapStyle(
+                                        MapStyleOptions.loadRawResourceStyle(
+                                                context, R.raw.map_style));
 
 
 
                                 /*map.setMapType(GoogleMap.MAP_TYPE_HYBRID);*/
 
-                                        markerCount = 1;
+                                markerCount = 1;
 
 
-                                    }
+                            }
 
 
                         }
@@ -264,6 +289,68 @@ public class MapDemoActivity extends AppCompatActivity {
         }
     }
 
+    @Override
+    public void onConnected(@Nullable Bundle bundle) {
+        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return;
+        }
+        LocationListener locationListener = new LocationListener() {
+            @Override
+            public void onLocationChanged(Location location) {
+
+
+                float d = location.distanceTo(locations);
+
+
+                distanceway.setText("KMS away from your location :" + d/1000);
+
+
+
+                Log.e("Distancebetween", " " + d/1000);
+
+
+            }
+
+            @Override
+            public void onStatusChanged(String provider, int status, Bundle extras) {
+
+            }
+
+            @Override
+            public void onProviderEnabled(String provider) {
+
+            }
+
+            @Override
+            public void onProviderDisabled(String provider) {
+
+            }
+        };
+
+        locationManager = (LocationManager) getApplicationContext().getSystemService(Context.LOCATION_SERVICE);
+
+        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 0, locationListener);
+
+
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+
+    }
+
+    @Override
+    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+
+    }
+
 
     private interface LatLngInterpolator {
         LatLng interpolate(float fraction, LatLng a, LatLng b);
@@ -298,6 +385,21 @@ public class MapDemoActivity extends AppCompatActivity {
 
         float result = fraction * rotation + start;
         return (result + 360) % 360;
+    }
+
+
+    private float distanceFrom_in_Km(float lat1, float lng1, float lat2, float lng2) {
+
+        double earthRadius = 6371000; //meters
+        double dLat = Math.toRadians(lat2 - lat1);
+        double dLng = Math.toRadians(lng2 - lng1);
+        double a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2)) *
+                        Math.sin(dLng / 2) * Math.sin(dLng / 2);
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        float dist = (float) (earthRadius * c);
+
+        return dist;
     }
 
 }
