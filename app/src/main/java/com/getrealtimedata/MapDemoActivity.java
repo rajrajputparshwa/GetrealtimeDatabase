@@ -4,8 +4,10 @@ import android.animation.ValueAnimator;
 import android.content.Context;
 import android.location.Location;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.animation.LinearInterpolator;
 import android.widget.Toast;
 
@@ -25,6 +27,8 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.util.ArrayList;
+
 public class MapDemoActivity extends AppCompatActivity {
 
     private SupportMapFragment mapFragment;
@@ -41,6 +45,8 @@ public class MapDemoActivity extends AppCompatActivity {
     Context context = this;
     String token;
     Marker mk = null;
+    Handler handler;
+    ArrayList<Customer> arrayList = new ArrayList<>();
     LatLng latlngOne;
 
 
@@ -87,45 +93,80 @@ public class MapDemoActivity extends AppCompatActivity {
 
                     mFirebaseDatabase = mFirebaseInstance.getReference("cars");
 
-                    mFirebaseDatabase.child("driver1").addValueEventListener(new ValueEventListener() {
+                    mFirebaseDatabase.addValueEventListener(new ValueEventListener() {
                         @Override
                         public void onDataChange(DataSnapshot dataSnapshot) {
 
-                            Customer customer = dataSnapshot.getValue(Customer.class);
+
+                            //Get key cars
 
 
-                            location = new Location("");
-                            location.setLatitude(customer.lat);
-                            location.setLongitude(customer.log);
-                            latlngOne = new LatLng(customer.lat, customer.log);
+                            for (DataSnapshot childSnapshot : dataSnapshot.getChildren()) {
 
 
-                            if (markerCount == 1) {
+                                Double lat = Double.valueOf(childSnapshot.child("lat").getValue(Double.class));
+                                Double log = Double.valueOf(childSnapshot.child("log").getValue(Double.class));
+                                float bearing = Float.valueOf(childSnapshot.child("bearing").getValue(Float.class));
+                                Log.e("Mainssssssssssssss", lat + " / " + log);
 
-                                String msg = "Updated Locations : " +
-                                        Double.toString(customer.lat) + "," +
-                                        Double.toString(customer.log);
+                                String myParentNode = childSnapshot.getKey();
+                                Log.e("Key", "" + myParentNode);
 
-                                Toast.makeText(context, msg, Toast.LENGTH_SHORT).show();
-                                animateMarker(location, mk);
-                            } else if (markerCount == 0) {
+                                Log.e("Counts", "" + childSnapshot.getChildrenCount());
+                                markerCount++;
+                                Log.e("MarkerCount", "" + markerCount);
 
+                                location = new Location("");
+                                location.setLatitude(lat);
+                                location.setLongitude(log);
+                                latlngOne = new LatLng(lat, log);
 
-                                mk = map.addMarker(new MarkerOptions()
-                                        .position(new LatLng(customer.lat, customer.log))
-                                        .title("office").icon(BitmapDescriptorFactory.fromResource(R.mipmap.icon_car)));
-
-
-                                CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latlngOne, 15);
-                                map.animateCamera(cameraUpdate);
-
-
-                                markerCount = 1;
+                                if (markerCount <= childSnapshot.getChildrenCount() + 1) {
 
 
+                                    mk = map.addMarker(new MarkerOptions()
+                                            .position(new LatLng(lat, log))
+                                            .title("office").icon(BitmapDescriptorFactory.fromResource(R.mipmap.icon_car)));
+
+
+                                    CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latlngOne, 18);
+                                    map.animateCamera(cameraUpdate);
+
+
+                                    Customer customer = new Customer();
+                                    customer.setLat(lat);
+                                    customer.setLog(log);
+                                    customer.setValue(myParentNode);
+                                    customer.setMarker(mk);
+                                    arrayList.add(customer);
+
+
+                                    Log.e("First", "First");
+
+                                } else {
+
+                                    markerCount--;
+
+                                    for (int i = 0; i <= childSnapshot.getChildrenCount(); i++) {
+
+
+                                        if (myParentNode.equals(arrayList.get(i).getValue())) {
+
+                                           /* String msg = "Updated Locations : " +
+                                                    Double.toString(lat) + "," +
+                                                    Double.toString(log);
+
+                                            Toast.makeText(context, msg, Toast.LENGTH_SHORT).show();*/
+
+
+
+
+                                            animateMarker(location, arrayList.get(i).getMarker(), bearing);
+                                            Log.e("Second", "Second");
+                                        }
+                                    }
+                                }
                             }
-
-
                         }
 
                         @Override
@@ -135,8 +176,6 @@ public class MapDemoActivity extends AppCompatActivity {
                     });
 
                 }
-
-
             });
         } else {
             Toast.makeText(this, "Error - Map Fragment was null!!", Toast.LENGTH_SHORT).show();
@@ -144,8 +183,7 @@ public class MapDemoActivity extends AppCompatActivity {
 
     }
 
-
-    public static void animateMarker(final Location destination, final Marker marker) {
+    public static void animateMarker(final Location destination, final Marker marker, final Float Bearing) {
         if (marker != null) {
             final LatLng startPosition = marker.getPosition();
             final LatLng endPosition = new LatLng(destination.getLatitude(), destination.getLongitude());
@@ -154,7 +192,7 @@ public class MapDemoActivity extends AppCompatActivity {
 
             final LatLngInterpolator latLngInterpolator = new LatLngInterpolator.LinearFixed();
             ValueAnimator valueAnimator = ValueAnimator.ofFloat(0, 1);
-            valueAnimator.setDuration(7000); // duration 1 second
+            valueAnimator.setDuration(1000); // duration 1 second
             valueAnimator.setInterpolator(new LinearInterpolator());
             valueAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
                 @Override
@@ -163,7 +201,8 @@ public class MapDemoActivity extends AppCompatActivity {
                         float v = animation.getAnimatedFraction();
                         LatLng newPosition = latLngInterpolator.interpolate(v, startPosition, endPosition);
                         marker.setPosition(newPosition);
-                        marker.setRotation(computeRotation(v, startRotation, destination.getBearing()));
+                        marker.setRotation(computeRotation(v, startRotation, Bearing));
+                        marker.setFlat(true);
                     } catch (Exception ex) {
                         // I don't care atm..
                     }
