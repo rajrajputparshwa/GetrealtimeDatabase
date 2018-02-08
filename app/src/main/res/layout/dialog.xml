@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/dilogborder"
+    >
+
+    <TextView
+        android:id="@+id/msglaert"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="20dp"
+        android:padding="10dp"
+        android:gravity="center"
+        android:text="Please Enter Driver's ID :"
+        android:textSize="18dp"
+        android:textColor="#000" />
+
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/edittext"
+        android:hint="Enter Driver's ID : "
+        android:layout_below="@+id/msglaert"/>
+
+    <TextView
+        android:id="@+id/con_ok"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="20dp"
+        android:layout_marginLeft="30dp"
+        android:layout_below="@+id/edittext"
+        android:layout_marginRight="30dp"
+        android:gravity="center|center_horizontal"
+        android:background="@drawable/menurounder"
+        android:padding="10dp"
+        android:text="Ok"
+        android:textColor="#fff"
+        android:textSize="16dp" />
+
+</RelativeLayout>
+
